@@ -180,6 +180,8 @@ class TimesplitUI(QMainWindow):
             finished = self.run_state.split(self.timer.get_time())
             if finished:
                 self.timer.finish()
+                # Auto-save on run completion
+                save_run(self.run_state.run_data, self.current_file_path)
             self.refresh_splits_ui()
         elif self.timer.state == TimerState.PAUSED:
             self.timer.start()
