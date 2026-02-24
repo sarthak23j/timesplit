@@ -247,6 +247,7 @@ class SettingsWindow(QDialog):
         self.save_btn.setObjectName("saveButton")
         self.save_btn.setMinimumHeight(40)
         self.save_btn.clicked.connect(self.save_settings)
+        self.save_btn.setDefault(True) # Make this the default button
         layout.addWidget(self.save_btn)
 
         self.setMinimumWidth(450)
@@ -290,6 +291,8 @@ class SettingsWindow(QDialog):
         item.setSizeHint(editor.sizeHint())
         self.segments_list.addItem(item)
         self.segments_list.setItemWidget(item, editor)
+        self.segments_list.setCurrentItem(item) # Select the newly added item
+        editor.name_edit.setFocus() # Set focus to the new segment's name editor
 
     def remove_segment(self):
         items_to_remove = []
