@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QSlider, QFileDialog, QListWidget, QListWidgetItem, QWidget)
+                             QLineEdit, QPushButton, QSlider, QFileDialog, QListWidget, QListWidgetItem, QWidget, QCheckBox)
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QPixmap
 import os
