@@ -34,39 +34,39 @@ class TimesplitUI(QMainWindow):
         
         # Header
         self.header_label = QLabel(f"{self.run_state.run_data.game_name} - {self.run_state.run_data.category}")
-        self.header_label.setStyleSheet("color: white; font-size: 14px; font-weight: bold;")
+        self.header_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
         layout.addWidget(self.header_label)
 
         # Splits List (simplified for now)
         self.splits_list = QListWidget()
-        self.splits_list.setStyleSheet("background-color: transparent; border: none; color: white;")
+        self.splits_list.setStyleSheet("background-color: transparent; border: none; color: white; font-family: 'Consolas', 'Courier New'; font-size: 14px;")
         layout.addWidget(self.splits_list)
 
         # Timer Display
         self.timer_label = QLabel("0.00")
         self.timer_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.timer_label.setStyleSheet("color: #00FF00; font-size: 36px; font-family: 'Courier New';")
+        self.timer_label.setStyleSheet("color: #00FF00; font-size: 48px; font-family: 'Consolas', 'Courier New'; font-weight: bold;")
         layout.addWidget(self.timer_label)
 
         # Footer
         footer_layout = QVBoxLayout()
         self.gold_label = QLabel("Best Segment: -")
-        self.gold_label.setStyleSheet("color: #FFD700; font-size: 10px;") # Gold color
+        self.gold_label.setStyleSheet("color: #FFD700; font-size: 13px;") # Gold color
         footer_layout.addWidget(self.gold_label)
         
         self.sob_label = QLabel(f"Sum of Best: {self.format_time(self.run_state.get_sum_of_best())}")
-        self.sob_label.setStyleSheet("color: #AAAAAA; font-size: 10px;")
+        self.sob_label.setStyleSheet("color: #AAAAAA; font-size: 13px;")
         footer_layout.addWidget(self.sob_label)
         
         hint_label = QLabel("Right-click for Settings")
-        hint_label.setStyleSheet("color: #555555; font-size: 8px;")
+        hint_label.setStyleSheet("color: #555555; font-size: 10px;")
         hint_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         footer_layout.addWidget(hint_label)
         
         layout.addLayout(footer_layout)
 
         self.refresh_splits_ui()
-        self.setFixedSize(300, 450)
+        self.setFixedSize(400, 600)
 
     def set_transparency(self):
         # Semi-transparent background with a subtle border
@@ -90,33 +90,33 @@ class TimesplitUI(QMainWindow):
     def refresh_splits_ui(self):
         self.splits_list.clear()
         for i, segment in enumerate(self.run_state.run_data.segments):
-            # Format: Segment Name | Delta | Split Time
             name = segment.name
+            split_time_str = ""
             delta_str = ""
-            split_time_str = self.format_time(segment.personal_best)
             
             if i < self.run_state.current_segment_index:
-                # Segment finished, show actual split time and delta
+                # Past segments: show actual split time and delta vs PB
                 split_time_str = self.format_time(segment.current_split_time)
                 if segment.personal_best is not None and segment.current_split_time is not None:
                     delta = segment.current_split_time - segment.personal_best
                     delta_str = f"{delta:+.2f}"
-                    if delta < 0:
-                        delta_str = f"<font color='#00FF00'>{delta_str}</font>" # Ahead
-                    else:
-                        delta_str = f"<font color='#FF0000'>{delta_str}</font>" # Behind
+            else:
+                # Current/Future segments: show PB split time
+                split_time_str = self.format_time(segment.personal_best)
 
-            display_text = f"{name:<20} {delta_str:>10} {split_time_str:>10}"
-            item = QListWidgetItem()
-            # We use a custom widget or HTML for coloring parts of the text
-            # For simplicity in MVP, we'll just set the whole item color if not using HTML
-            # Actually, QListWidgetItem doesn't support HTML easily. 
-            # Let's use a simple format for now or just the name.
-            
-            clean_text = f"{name[:15]:<15} {split_time_str:>8}"
-            item.setText(clean_text)
+            # Columnar layout using fixed-width characters (Consolas)
+            # Layout: [Name (20)] [Delta (10)] [Split Time (10)]
+            clean_text = f"{name[:20]:<20} {delta_str:>10} {split_time_str:>10}"
+            item = QListWidgetItem(clean_text)
 
-            if i == self.run_state.current_segment_index:
+            # Delta coloring
+            if delta_str:
+                delta = float(delta_str)
+                if delta < 0:
+                    item.setForeground(QColor("#44FF44")) # Ahead (Green)
+                else:
+                    item.setForeground(QColor("#FF4444")) # Behind (Red)
+            elif i == self.run_state.current_segment_index:
                 item.setBackground(QColor(255, 255, 255, 30))
                 item.setForeground(QColor("#FFFFFF"))
             elif i < self.run_state.current_segment_index:
