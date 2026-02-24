@@ -1,8 +1,8 @@
 import sys
 import os
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QListWidget, QListWidgetItem, QMenu, QApplication
-from PyQt6.QtCore import Qt, QTimer, QPoint
-from PyQt6.QtGui import QMouseEvent, QAction, QFont, QColor, QPalette
+from PyQt6.QtCore import Qt, QTimer, QPoint, QSize
+from PyQt6.QtGui import QMouseEvent, QAction, QFont, QColor, QPalette, QIcon, QPixmap
 
 from ..core.timer import Timer, TimerState
 from ..core.state import RunState, Segment
@@ -40,6 +40,7 @@ class TimesplitUI(QMainWindow):
         # Splits List (simplified for now)
         self.splits_list = QListWidget()
         self.splits_list.setStyleSheet("background-color: transparent; border: none; color: white; font-family: 'Consolas', 'Courier New'; font-size: 14px;")
+        self.splits_list.setIconSize(QSize(32, 32))
         layout.addWidget(self.splits_list)
 
         # Timer Display
@@ -108,6 +109,12 @@ class TimesplitUI(QMainWindow):
             # Layout: [Name (20)] [Delta (10)] [Split Time (10)]
             clean_text = f"{name[:20]:<20} {delta_str:>10} {split_time_str:>10}"
             item = QListWidgetItem(clean_text)
+
+            if segment.icon_path and os.path.exists(segment.icon_path):
+                pixmap = QPixmap(segment.icon_path)
+                if not pixmap.isNull():
+                    item.setIcon(QIcon(pixmap))
+
 
             # Delta coloring
             if delta_str:

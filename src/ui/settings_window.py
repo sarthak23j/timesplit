@@ -1,9 +1,67 @@
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QPushButton, QSlider, QFileDialog, QListWidget, QListWidgetItem)
-from PyQt6.QtCore import Qt
+                             QLineEdit, QPushButton, QSlider, QFileDialog, QListWidget, QListWidgetItem, QWidget)
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QIcon, QPixmap
 import os
 from ..core.io import load_run, save_run
 from ..core.state import RunData, Segment
+
+class SegmentEditorWidget(QWidget):
+    def __init__(self, segment: Segment = None, parent=None):
+        super().__init__(parent)
+        self.segment = segment if segment else Segment("New Segment")
+        self.init_ui()
+
+    def init_ui(self):
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
+
+        self.icon_label = QLabel()
+        self.icon_label.setFixedSize(24, 24)
+        self.icon_label.setStyleSheet("border: 1px solid #3d3d3d; border-radius: 4px; background-color: #2d2d2d;")
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.icon_label)
+
+        self.name_edit = QLineEdit(self.segment.name)
+        self.name_edit.setPlaceholderText("Segment Name")
+        layout.addWidget(self.name_edit)
+
+        self.icon_path_edit = QLineEdit(self.segment.icon_path if self.segment.icon_path else "")
+        self.icon_path_edit.setReadOnly(True)
+        self.icon_path_edit.setPlaceholderText("No icon selected")
+        layout.addWidget(self.icon_path_edit)
+
+        browse_icon_btn = QPushButton("...")
+        browse_icon_btn.setFixedSize(24, 24)
+        browse_icon_btn.clicked.connect(self.browse_icon)
+        layout.addWidget(browse_icon_btn)
+
+        self.load_icon()
+
+        # Connect name edit to update segment object
+        self.name_edit.textChanged.connect(self._update_segment_name)
+
+    def _update_segment_name(self, name):
+        self.segment.name = name
+
+    def browse_icon(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Icon", "", "Image Files (*.png *.jpg *.bmp *.gif)")
+        if file_path:
+            self.segment.icon_path = file_path
+            self.icon_path_edit.setText(file_path)
+            self.load_icon()
+
+    def load_icon(self):
+        if self.segment.icon_path and os.path.exists(self.segment.icon_path):
+            pixmap = QPixmap(self.segment.icon_path)
+            if not pixmap.isNull():
+                self.icon_label.setPixmap(pixmap.scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            else:
+                self.icon_label.clear()
+        else:
+            self.icon_label.clear()
+
 
 class SettingsWindow(QDialog):
     def __init__(self, parent=None):
@@ -169,10 +227,11 @@ class SettingsWindow(QDialog):
         self.category_edit.setText(run_data.category)
         self.segments_list.clear()
         for seg in run_data.segments:
-            item = QListWidgetItem(seg.name)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
-            item.setData(Qt.ItemDataRole.UserRole, seg)
+            item = QListWidgetItem(self.segments_list)
+            editor = SegmentEditorWidget(seg)
+            item.setSizeHint(editor.sizeHint())
             self.segments_list.addItem(item)
+            self.segments_list.setItemWidget(item, editor)
 
     def update_transparency(self, value):
         if self.parent_ui:
@@ -194,26 +253,23 @@ class SettingsWindow(QDialog):
             self.load_data_into_ui(self.current_run_data)
 
     def add_segment(self):
-        item = QListWidgetItem("New Segment")
-        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
+        item = QListWidgetItem(self.segments_list)
+        editor = SegmentEditorWidget()
+        item.setSizeHint(editor.sizeHint())
         self.segments_list.addItem(item)
+        self.segments_list.setItemWidget(item, editor)
 
     def remove_segment(self):
         for item in self.segments_list.selectedItems():
-            self.segments_list.takeItem(self.segments_list.row(item))
+            row = self.segments_list.row(item)
+            self.segments_list.takeItem(row)
 
     def save_settings(self):
         segments = []
         for i in range(self.segments_list.count()):
             item = self.segments_list.item(i)
-            name = item.text()
-            old_seg = item.data(Qt.ItemDataRole.UserRole)
-            
-            if old_seg:
-                old_seg.name = name
-                segments.append(old_seg)
-            else:
-                segments.append(Segment(name))
+            editor = self.segments_list.itemWidget(item)
+            segments.append(editor.segment) # SegmentEditorWidget manages its own Segment object
         
         new_run_data = RunData(
             game_name=self.game_name_edit.text() or "New Game",

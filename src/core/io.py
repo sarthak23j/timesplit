@@ -12,7 +12,8 @@ def save_run(run_data: RunData, filepath: str):
             {
                 "name": s.name,
                 "personal_best": s.personal_best,
-                "gold": s.gold
+                "gold": s.gold,
+                "icon_path": s.icon_path
             } for s in run_data.segments
         ]
     }
@@ -28,7 +29,8 @@ def load_run(filepath: str) -> RunData:
         Segment(
             name=s["name"],
             personal_best=s.get("personal_best"),
-            gold=s.get("gold")
+            gold=s.get("gold"),
+            icon_path=s.get("icon_path")
         ) for s in data["segments"]
     ]
     

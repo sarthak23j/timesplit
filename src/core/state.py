@@ -8,6 +8,7 @@ class Segment:
     gold: Optional[float] = None           # Best ever duration for THIS segment
     current_duration: Optional[float] = None
     current_split_time: Optional[float] = None
+    icon_path: Optional[str] = None
 
 @dataclass
 class RunData:
