@@ -10,33 +10,28 @@ class SegmentEditorWidget(QWidget):
     def __init__(self, segment: Segment = None, parent=None):
         super().__init__(parent)
         self.segment = segment if segment else Segment("New Segment")
-        self.setMinimumHeight(40) # Ensure a minimum height for each editor widget
+        self.setMinimumHeight(40)
         self.init_ui()
+        self.setStyleSheet("background-color: transparent;") # Make widget transparent
 
     def init_ui(self):
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 5, 5, 5) # Add padding
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
 
-        self.icon_label = QLabel()
-        self.icon_label.setFixedSize(24, 24)
-        self.icon_label.setStyleSheet("border: 1px solid #3d3d3d; border-radius: 4px; background-color: #2d2d2d;")
-        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.icon_label)
+        self.icon_button = QPushButton()
+        self.icon_button.setFixedSize(30, 30) # Slightly larger button
+        self.icon_button.setIconSize(QSize(24, 24))
+        self.icon_button.clicked.connect(self.browse_icon)
+        layout.addWidget(self.icon_button)
 
         self.name_edit = QLineEdit(self.segment.name)
         self.name_edit.setPlaceholderText("Segment Name")
-        layout.addWidget(self.name_edit)
+        layout.addWidget(self.name_edit, 1) # Give name edit stretch factor
 
-        self.icon_path_edit = QLineEdit(self.segment.icon_path if self.segment.icon_path else "")
-        self.icon_path_edit.setReadOnly(True)
-        self.icon_path_edit.setPlaceholderText("No icon selected")
-        layout.addWidget(self.icon_path_edit)
-
-        browse_icon_btn = QPushButton("...")
-        browse_icon_btn.setFixedSize(24, 24)
-        browse_icon_btn.clicked.connect(self.browse_icon)
-        layout.addWidget(browse_icon_btn)
+        self.checkbox = QCheckBox()
+        self.checkbox.setFixedSize(24, 24)
+        layout.addWidget(self.checkbox)
 
         self.load_icon()
 
@@ -50,18 +45,17 @@ class SegmentEditorWidget(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Icon", "", "Image Files (*.png *.jpg *.bmp *.gif)")
         if file_path:
             self.segment.icon_path = file_path
-            self.icon_path_edit.setText(file_path)
             self.load_icon()
 
     def load_icon(self):
         if self.segment.icon_path and os.path.exists(self.segment.icon_path):
             pixmap = QPixmap(self.segment.icon_path)
             if not pixmap.isNull():
-                self.icon_label.setPixmap(pixmap.scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                self.icon_button.setIcon(QIcon(pixmap))
             else:
-                self.icon_label.clear()
+                self.icon_button.setIcon(QIcon()) # Clear icon
         else:
-            self.icon_label.clear()
+            self.icon_button.setIcon(QIcon()) # Clear icon
 
 
 class SettingsWindow(QDialog):
@@ -128,14 +122,16 @@ class SettingsWindow(QDialog):
                 border-radius: 4px;
                 color: #ffffff;
                 font-size: 13px;
-                padding: 5px;
+                padding: 0px; /* Remove padding here */
             }
             QListWidget::item {
-                padding: 5px;
-                border-radius: 2px;
+                background-color: transparent; /* Make item background transparent */
+                margin: 0px; /* Remove margin here */
+                padding: 0px; /* Remove padding here */
             }
             QListWidget::item:selected {
-                background-color: #0078d4;
+                background-color: #0078d4; /* This should now be visible through transparent widget */
+                border-radius: 4px; /* Apply border radius to selected item background */
             }
             QSlider::groove:horizontal {
                 border: 1px solid #3d3d3d;
@@ -261,7 +257,14 @@ class SettingsWindow(QDialog):
         self.segments_list.setItemWidget(item, editor)
 
     def remove_segment(self):
-        for item in self.segments_list.selectedItems():
+        items_to_remove = []
+        for i in range(self.segments_list.count()):
+            item = self.segments_list.item(i)
+            editor = self.segments_list.itemWidget(item)
+            if editor and editor.checkbox.isChecked():
+                items_to_remove.append(item)
+        
+        for item in reversed(items_to_remove): # Remove from end to avoid index issues
             row = self.segments_list.row(item)
             self.segments_list.takeItem(row)
 
