@@ -40,7 +40,6 @@ class TimesplitUI(QMainWindow):
         self.splits_list = QListWidget()
         self.splits_list.setStyleSheet("background-color: transparent; border: none; color: white;")
         layout.addWidget(self.splits_list)
-        self.refresh_splits_ui()
 
         # Timer Display
         self.timer_label = QLabel("0.00")
@@ -61,6 +60,7 @@ class TimesplitUI(QMainWindow):
         
         layout.addLayout(footer_layout)
 
+        self.refresh_splits_ui()
         self.setFixedSize(300, 450)
 
     def set_transparency(self):

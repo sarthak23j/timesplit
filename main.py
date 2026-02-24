@@ -32,21 +32,21 @@ def main():
 
     print("Timesplit started!")
     print("Hotkeys:")
-    print("  NumPad 1: Start / Split")
-    print("  NumPad 3: Reset")
-    print("  NumPad 8: Undo")
-    print("  NumPad 2: Skip")
-    print("  NumPad 5: Pause / Resume")
+    print("  F1: Start / Split")
+    print("  F2: Reset")
+    print("  F3: Undo")
+    print("  F4: Skip")
+    print("  F5: Pause / Resume")
 
     # Register Hotkeys (using 'keyboard' library)
     # keyboard library needs to run in separate thread or hook into app
     # but for simple global hotkeys, we can use hooks
     
-    keyboard.on_press_key("num 1", lambda _: window.start_split())
-    keyboard.on_press_key("num 3", lambda _: window.reset_timer())
-    keyboard.on_press_key("num 8", lambda _: window.undo_split())
-    keyboard.on_press_key("num 2", lambda _: window.skip_split())
-    keyboard.on_press_key("num 5", lambda _: window.timer.pause())
+    keyboard.on_press_key("f1", lambda _: window.start_split())
+    keyboard.on_press_key("f2", lambda _: window.reset_timer())
+    keyboard.on_press_key("f3", lambda _: window.undo_split())
+    keyboard.on_press_key("f4", lambda _: window.skip_split())
+    keyboard.on_press_key("f5", lambda _: window.timer.pause())
 
     sys.exit(app.exec())
 

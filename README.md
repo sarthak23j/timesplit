@@ -28,11 +28,11 @@ python main.py
 ```
 
 ## Hotkeys (Default)
-- **NumPad 1**: Start / Split
-- **NumPad 3**: Reset (Autosaves progress)
-- **NumPad 8**: Undo Split
-- **NumPad 2**: Skip Split
-- **NumPad 5**: Pause / Resume
+- **F1**: Start / Split
+- **F2**: Reset (Autosaves progress)
+- **F3**: Undo Split
+- **F4**: Skip Split
+- **F5**: Pause / Resume
 
 ## Customization
 Edit `data/example_run.json` to define your own segments and personal bests.
