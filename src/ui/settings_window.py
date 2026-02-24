@@ -155,11 +155,13 @@ class SettingsWindow(QDialog):
                 border: 1px solid #666666;
                 border-radius: 3px;
                 background-color: #2d2d2d;
+                /* Attempt to center the indicator by adjusting padding/margin */
+                padding: 1px;
             }
             QCheckBox::indicator:checked {
-                background-color: #0078d4;
-                border: 1px solid #0078d4;
-                /* image: url(assets/checkmark_white.png); -- Add a white checkmark image here later */
+                background-color: #EEEEEE; /* White when checked */
+                border: 1px solid #EEEEEE;
+                /* image: url(assets/checkmark_black.png); -- Now use a black checkmark for contrast */
             }
             QCheckBox::indicator:hover {
                 border: 1px solid #00aaff;
