@@ -10,11 +10,12 @@ class SegmentEditorWidget(QWidget):
     def __init__(self, segment: Segment = None, parent=None):
         super().__init__(parent)
         self.segment = segment if segment else Segment("New Segment")
+        self.setMinimumHeight(40) # Ensure a minimum height for each editor widget
         self.init_ui()
 
     def init_ui(self):
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(5, 5, 5, 5) # Add padding
         layout.setSpacing(5)
 
         self.icon_label = QLabel()
@@ -220,7 +221,7 @@ class SettingsWindow(QDialog):
         layout.addWidget(self.save_btn)
 
         self.setMinimumWidth(450)
-        self.setMinimumHeight(600)
+        self.setMinimumHeight(750)
 
     def load_data_into_ui(self, run_data: RunData):
         self.game_name_edit.setText(run_data.game_name)
