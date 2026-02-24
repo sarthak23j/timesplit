@@ -148,6 +148,22 @@ class SettingsWindow(QDialog):
                 margin: -6px 0;
                 border-radius: 9px;
             }
+            
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+                border: 1px solid #666666;
+                border-radius: 3px;
+                background-color: #2d2d2d;
+            }
+            QCheckBox::indicator:checked {
+                background-color: #0078d4;
+                border: 1px solid #0078d4;
+                /* image: url(assets/checkmark_white.png); -- Add a white checkmark image here later */
+            }
+            QCheckBox::indicator:hover {
+                border: 1px solid #00aaff;
+            }
         """)
 
     def init_ui(self):
