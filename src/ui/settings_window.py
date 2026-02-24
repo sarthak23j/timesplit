@@ -11,7 +11,12 @@ class SettingsWindow(QDialog):
         self.setWindowTitle("Timesplit Settings")
         self.setModal(True)
         self.parent_ui = parent
+        self.current_run_data = None
+        if parent and hasattr(parent, 'run_state'):
+            self.current_run_data = parent.run_state.run_data
         self.init_ui()
+        if self.current_run_data:
+            self.load_data_into_ui(self.current_run_data)
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -28,6 +33,8 @@ class SettingsWindow(QDialog):
         file_layout = QHBoxLayout()
         self.file_path_edit = QLineEdit()
         self.file_path_edit.setReadOnly(True)
+        if self.parent_ui and hasattr(self.parent_ui, 'current_file_path'):
+            self.file_path_edit.setText(self.parent_ui.current_file_path)
         file_layout.addWidget(self.file_path_edit)
         
         load_btn = QPushButton("Load Split")
@@ -65,6 +72,16 @@ class SettingsWindow(QDialog):
 
         self.setMinimumWidth(400)
 
+    def load_data_into_ui(self, run_data: RunData):
+        self.game_name_edit.setText(run_data.game_name)
+        self.category_edit.setText(run_data.category)
+        self.segments_list.clear()
+        for seg in run_data.segments:
+            item = QListWidgetItem(seg.name)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
+            item.setData(Qt.ItemDataRole.UserRole, seg)
+            self.segments_list.addItem(item)
+
     def update_transparency(self, value):
         if self.parent_ui:
             self.parent_ui.setStyleSheet(f"""
@@ -81,14 +98,8 @@ class SettingsWindow(QDialog):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Split File", "data", "JSON Files (*.json)")
         if file_path:
             self.file_path_edit.setText(file_path)
-            run_data = load_run(file_path)
-            self.game_name_edit.setText(run_data.game_name)
-            self.category_edit.setText(run_data.category)
-            self.segments_list.clear()
-            for seg in run_data.segments:
-                item = QListWidgetItem(seg.name)
-                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
-                self.segments_list.addItem(item)
+            self.current_run_data = load_run(file_path)
+            self.load_data_into_ui(self.current_run_data)
 
     def add_segment(self):
         item = QListWidgetItem("New Segment")
@@ -100,19 +111,25 @@ class SettingsWindow(QDialog):
             self.segments_list.takeItem(self.segments_list.row(item))
 
     def save_settings(self):
-        # Create new RunData from UI
         segments = []
         for i in range(self.segments_list.count()):
-            name = self.segments_list.item(i).text()
-            segments.append(Segment(name))
+            item = self.segments_list.item(i)
+            name = item.text()
+            old_seg = item.data(Qt.ItemDataRole.UserRole)
+            
+            if old_seg:
+                old_seg.name = name
+                segments.append(old_seg)
+            else:
+                segments.append(Segment(name))
         
         new_run_data = RunData(
             game_name=self.game_name_edit.text() or "New Game",
             category=self.category_edit.text() or "Any%",
-            segments=segments
+            segments=segments,
+            attempts=self.current_run_data.attempts if self.current_run_data else 0
         )
 
-        # Ask where to save if no file loaded
         file_path = self.file_path_edit.text()
         if not file_path:
             file_path, _ = QFileDialog.getSaveFileName(self, "Save Split File", "data", "JSON Files (*.json)")
@@ -122,6 +139,7 @@ class SettingsWindow(QDialog):
             if self.parent_ui:
                 from ..core.state import RunState
                 self.parent_ui.run_state = RunState(new_run_data)
+                self.parent_ui.current_file_path = file_path
                 self.parent_ui.header_label.setText(f"{new_run_data.game_name} - {new_run_data.category}")
                 self.parent_ui.reset_timer()
             self.accept()

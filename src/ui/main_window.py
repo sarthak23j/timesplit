@@ -9,9 +9,10 @@ from ..core.state import RunState, Segment
 from ..core.io import load_run, save_run
 
 class TimesplitUI(QMainWindow):
-    def __init__(self, run_state: RunState):
+    def __init__(self, run_state: RunState, file_path: str = None):
         super().__init__()
         self.run_state = run_state
+        self.current_file_path = file_path or os.path.join("data", "example_run.json")
         self.timer = Timer()
         self.ui_timer = QTimer()
         self.ui_timer.timeout.connect(self.update_ui)
@@ -49,6 +50,10 @@ class TimesplitUI(QMainWindow):
 
         # Footer
         footer_layout = QVBoxLayout()
+        self.gold_label = QLabel("Best Segment: -")
+        self.gold_label.setStyleSheet("color: #FFD700; font-size: 10px;") # Gold color
+        footer_layout.addWidget(self.gold_label)
+        
         self.sob_label = QLabel(f"Sum of Best: {self.format_time(self.run_state.get_sum_of_best())}")
         self.sob_label.setStyleSheet("color: #AAAAAA; font-size: 10px;")
         footer_layout.addWidget(self.sob_label)
@@ -121,6 +126,13 @@ class TimesplitUI(QMainWindow):
             
             self.splits_list.addItem(item)
         
+        # Update Footer
+        current_seg = self.run_state.get_current_segment()
+        if current_seg:
+            self.gold_label.setText(f"Best Segment: {self.format_time(current_seg.gold)}")
+        else:
+            self.gold_label.setText("Best Segment: -")
+            
         self.sob_label.setText(f"Sum of Best: {self.format_time(self.run_state.get_sum_of_best())}")
 
     def update_ui(self):
@@ -175,14 +187,14 @@ class TimesplitUI(QMainWindow):
     def reset_timer(self):
         # Save before resetting if we had a run
         if self.run_state.current_segment_index > 0:
-            save_run(self.run_state.run_data, os.path.join("data", "example_run.json"))
+            save_run(self.run_state.run_data, self.current_file_path)
         
         self.timer.reset()
         self.run_state.reset()
         self.refresh_splits_ui()
 
     def closeEvent(self, event):
-        save_run(self.run_state.run_data, os.path.join("data", "example_run.json"))
+        save_run(self.run_state.run_data, self.current_file_path)
         event.accept()
 
     def undo_split(self):

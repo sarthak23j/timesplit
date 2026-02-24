@@ -27,7 +27,7 @@ def main():
     
     run_state = RunState(run_data)
     
-    window = TimesplitUI(run_state)
+    window = TimesplitUI(run_state, json_path if os.path.exists(json_path) else None)
     window.show()
 
     print("Timesplit started!")

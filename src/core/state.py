@@ -53,6 +53,12 @@ class RunState:
         self.current_segment_index += 1
         
         if self.current_segment_index == len(self.run_data.segments):
+            # Check for New PB
+            last_segment = self.run_data.segments[-1]
+            if last_segment.personal_best is None or last_segment.current_split_time < last_segment.personal_best:
+                # Update all PBs
+                for s in self.run_data.segments:
+                    s.personal_best = s.current_split_time
             return True # Finished
         return False
 
