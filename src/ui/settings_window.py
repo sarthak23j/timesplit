@@ -244,7 +244,6 @@ class SettingsWindow(QDialog):
         self.save_btn.setObjectName("saveButton")
         self.save_btn.setMinimumHeight(40)
         self.save_btn.clicked.connect(self.save_settings)
-        self.save_btn.setDefault(True) # Make this the default button
         layout.addWidget(self.save_btn)
 
         self.setMinimumWidth(450)
