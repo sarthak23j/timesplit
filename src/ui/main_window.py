@@ -107,13 +107,19 @@ class TimesplitUI(QMainWindow):
 
             # Columnar layout using fixed-width characters (Consolas)
             # Layout: [Name (20)] [Delta (10)] [Split Time (10)]
-            clean_text = f"{name[:20]:<20} {delta_str:>10} {split_time_str:>10}"
+            clean_text = f"{name[:20]:<20} {delta_str:<10} {split_time_str:<10}"
             item = QListWidgetItem(clean_text)
 
             if segment.icon_path and os.path.exists(segment.icon_path):
                 pixmap = QPixmap(segment.icon_path)
                 if not pixmap.isNull():
                     item.setIcon(QIcon(pixmap))
+            else:
+                # If no icon or invalid, set a blank/transparent pixmap of the correct size
+                # This reserves the space for the icon and ensures consistent text alignment.
+                transparent_pixmap = QPixmap(self.splits_list.iconSize())
+                transparent_pixmap.fill(Qt.GlobalColor.transparent)
+                item.setIcon(QIcon(transparent_pixmap))
 
 
             # Delta coloring
