@@ -221,7 +221,7 @@ class SettingsWindow(QDialog):
         layout.addWidget(self.save_btn)
 
         self.setMinimumWidth(450)
-        self.setMinimumHeight(750)
+        self.setMinimumHeight(775)
 
     def load_data_into_ui(self, run_data: RunData):
         self.game_name_edit.setText(run_data.game_name)
