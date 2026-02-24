@@ -249,17 +249,38 @@ class SettingsWindow(QDialog):
         self.setMinimumWidth(450)
         self.setMinimumHeight(775)
 
-    def load_data_into_ui(self, run_data: RunData):
-        self.game_name_edit.setText(run_data.game_name)
-        self.category_edit.setText(run_data.category)
-        self.segments_list.clear()
-        for seg in run_data.segments:
-            item = QListWidgetItem(self.segments_list)
-            editor = SegmentEditorWidget(seg)
-            editor.enterPressed.connect(self.add_segment) # Connect the signal
-            item.setSizeHint(editor.sizeHint())
-            self.segments_list.addItem(item)
-            self.segments_list.setItemWidget(item, editor)
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            focused_widget = QApplication.focusWidget()
+            # If the focused widget is a QLineEdit inside a SegmentEditorWidget,
+            # we let the SegmentEditorWidget handle it (add new segment)
+            # and prevent further propagation to avoid dialog closure.
+            if isinstance(focused_widget, QLineEdit) and isinstance(focused_widget.parent(), SegmentEditorWidget):
+                event.accept()
+                return
+            # If Enter is pressed and it's not handled by a SegmentEditorWidget,
+            # we prevent the default QDialog behavior of activating the default button.
+            # This is to prevent unexpected Save/Close actions.
+            event.ignore() # Prevent further propagation of this event.
+            return
+        super().keyPressEvent(event) # For other keys, let the base class handle it.
+
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            focused_widget = QApplication.focusWidget()
+            # If the focused widget is a QLineEdit inside a SegmentEditorWidget,
+            # we let the SegmentEditorWidget handle it (add new segment)
+            # and prevent further propagation to avoid dialog closure.
+            if isinstance(focused_widget, QLineEdit) and isinstance(focused_widget.parent(), SegmentEditorWidget):
+                event.accept()
+                return
+            # Otherwise, let the default dialog behavior happen (e.g., activating default button, if any)
+            # Or if it's not a relevant Enter press, pass it to base class.
+            super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
+
 
     def update_transparency(self, value):
         if self.parent_ui:
