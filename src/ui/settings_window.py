@@ -12,65 +12,157 @@ class SettingsWindow(QDialog):
         self.setModal(True)
         self.parent_ui = parent
         self.current_run_data = None
+        
+        self.apply_styles()
+        
         if parent and hasattr(parent, 'run_state'):
             self.current_run_data = parent.run_state.run_data
         self.init_ui()
         if self.current_run_data:
             self.load_data_into_ui(self.current_run_data)
 
+    def apply_styles(self):
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #1e1e1e;
+                color: #ffffff;
+                font-family: 'Segoe UI', Arial;
+            }
+            QLabel {
+                color: #bbbbbb;
+                font-size: 13px;
+                font-weight: bold;
+                margin-top: 5px;
+            }
+            QLineEdit {
+                background-color: #2d2d2d;
+                border: 1px solid #3d3d3d;
+                border-radius: 4px;
+                color: #ffffff;
+                padding: 6px;
+                font-size: 13px;
+            }
+            QLineEdit:focus {
+                border: 1px solid #0078d4;
+            }
+            QPushButton {
+                background-color: #3d3d3d;
+                border: none;
+                border-radius: 4px;
+                color: #ffffff;
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #4d4d4d;
+            }
+            QPushButton#saveButton {
+                background-color: #0078d4;
+                font-weight: bold;
+            }
+            QPushButton#saveButton:hover {
+                background-color: #0086f0;
+            }
+            QListWidget {
+                background-color: #2d2d2d;
+                border: 1px solid #3d3d3d;
+                border-radius: 4px;
+                color: #ffffff;
+                font-size: 13px;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 5px;
+                border-radius: 2px;
+            }
+            QListWidget::item:selected {
+                background-color: #0078d4;
+            }
+            QSlider::groove:horizontal {
+                border: 1px solid #3d3d3d;
+                height: 8px;
+                background: #2d2d2d;
+                margin: 2px 0;
+                border-radius: 4px;
+            }
+            QSlider::handle:horizontal {
+                background: #0078d4;
+                border: 1px solid #0078d4;
+                width: 18px;
+                height: 18px;
+                margin: -6px 0;
+                border-radius: 9px;
+            }
+        """)
+
     def init_ui(self):
         layout = QVBoxLayout(self)
+        layout.setSpacing(10)
+        layout.setContentsMargins(20, 20, 20, 20)
 
         # Transparency Slider
-        layout.addWidget(QLabel("Transparency:"))
+        layout.addWidget(QLabel("OVERLAY TRANSPARENCY"))
         self.alpha_slider = QSlider(Qt.Orientation.Horizontal)
         self.alpha_slider.setRange(50, 255)
         self.alpha_slider.setValue(180)
         self.alpha_slider.valueChanged.connect(self.update_transparency)
         layout.addWidget(self.alpha_slider)
 
+        layout.addSpacing(10)
+
         # File Selection
+        layout.addWidget(QLabel("SPLIT FILE"))
         file_layout = QHBoxLayout()
         self.file_path_edit = QLineEdit()
         self.file_path_edit.setReadOnly(True)
+        self.file_path_edit.setPlaceholderText("No file loaded...")
         if self.parent_ui and hasattr(self.parent_ui, 'current_file_path'):
             self.file_path_edit.setText(self.parent_ui.current_file_path)
         file_layout.addWidget(self.file_path_edit)
         
-        load_btn = QPushButton("Load Split")
+        load_btn = QPushButton("Browse")
         load_btn.clicked.connect(self.load_file)
         file_layout.addWidget(load_btn)
         layout.addLayout(file_layout)
 
+        layout.addSpacing(10)
+
         # Split Editor
-        layout.addWidget(QLabel("Splits Editor:"))
+        layout.addWidget(QLabel("RUN DETAILS"))
         self.game_name_edit = QLineEdit()
-        self.game_name_edit.setPlaceholderText("Game Name")
+        self.game_name_edit.setPlaceholderText("Game Name (e.g., Super Mario 64)")
         layout.addWidget(self.game_name_edit)
 
         self.category_edit = QLineEdit()
-        self.category_edit.setPlaceholderText("Category")
+        self.category_edit.setPlaceholderText("Category (e.g., Any%)")
         layout.addWidget(self.category_edit)
 
+        layout.addSpacing(5)
+        layout.addWidget(QLabel("SEGMENTS"))
         self.segments_list = QListWidget()
         layout.addWidget(self.segments_list)
 
         seg_ctrl_layout = QHBoxLayout()
-        add_seg_btn = QPushButton("Add Segment")
+        add_seg_btn = QPushButton("+ Add")
         add_seg_btn.clicked.connect(self.add_segment)
         seg_ctrl_layout.addWidget(add_seg_btn)
 
-        remove_seg_btn = QPushButton("Remove Selected")
+        remove_seg_btn = QPushButton("- Remove")
         remove_seg_btn.clicked.connect(self.remove_segment)
         seg_ctrl_layout.addWidget(remove_seg_btn)
         layout.addLayout(seg_ctrl_layout)
 
-        # Save/Apply
-        save_btn = QPushButton("Save & Apply")
-        save_btn.clicked.connect(self.save_settings)
-        layout.addWidget(save_btn)
+        layout.addSpacing(20)
 
-        self.setMinimumWidth(400)
+        # Save/Apply
+        self.save_btn = QPushButton("SAVE & APPLY")
+        self.save_btn.setObjectName("saveButton")
+        self.save_btn.setMinimumHeight(40)
+        self.save_btn.clicked.connect(self.save_settings)
+        layout.addWidget(self.save_btn)
+
+        self.setMinimumWidth(450)
+        self.setMinimumHeight(600)
 
     def load_data_into_ui(self, run_data: RunData):
         self.game_name_edit.setText(run_data.game_name)
