@@ -1,12 +1,14 @@
 from PyQt6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QPushButton, QSlider, QFileDialog, QListWidget, QListWidgetItem, QWidget, QCheckBox)
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QIcon, QPixmap
 import os
 from ..core.io import load_run, save_run
 from ..core.state import RunData, Segment
 
 class SegmentEditorWidget(QWidget):
+    enterPressed = pyqtSignal() # Custom signal
+
     def __init__(self, segment: Segment = None, parent=None):
         super().__init__(parent)
         self.segment = segment if segment else Segment("New Segment")
@@ -27,6 +29,14 @@ class SegmentEditorWidget(QWidget):
 
         self.name_edit = QLineEdit(self.segment.name)
         self.name_edit.setPlaceholderText("Segment Name")
+        # Font size and vertical alignment
+        self.name_edit.setStyleSheet("""
+            QLineEdit {
+                font-size: 11px; /* Two font sizes smaller than default 13px */
+                padding-top: 5px; /* Adjust for vertical centering */
+                padding-bottom: 5px; /* Adjust for vertical centering */
+            }
+        """)
         layout.addWidget(self.name_edit, 1) # Give name edit stretch factor
 
         self.checkbox = QCheckBox()
@@ -35,8 +45,9 @@ class SegmentEditorWidget(QWidget):
 
         self.load_icon()
 
-        # Connect name edit to update segment object
+        # Connect name edit to update segment object and emit signal on Enter
         self.name_edit.textChanged.connect(self._update_segment_name)
+        self.name_edit.returnPressed.connect(self.enterPressed.emit)
 
     def _update_segment_name(self, name):
         self.segment.name = name
@@ -245,6 +256,7 @@ class SettingsWindow(QDialog):
         for seg in run_data.segments:
             item = QListWidgetItem(self.segments_list)
             editor = SegmentEditorWidget(seg)
+            editor.enterPressed.connect(self.add_segment) # Connect the signal
             item.setSizeHint(editor.sizeHint())
             self.segments_list.addItem(item)
             self.segments_list.setItemWidget(item, editor)
@@ -271,6 +283,7 @@ class SettingsWindow(QDialog):
     def add_segment(self):
         item = QListWidgetItem(self.segments_list)
         editor = SegmentEditorWidget()
+        editor.enterPressed.connect(self.add_segment) # Connect the signal
         item.setSizeHint(editor.sizeHint())
         self.segments_list.addItem(item)
         self.segments_list.setItemWidget(item, editor)
