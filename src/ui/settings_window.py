@@ -195,6 +195,7 @@ class SettingsWindow(QDialog):
         layout.addSpacing(5)
         layout.addWidget(QLabel("SEGMENTS"))
         self.segments_list = QListWidget()
+        self.segments_list.setSelectionMode(QListWidget.SelectionMode.NoSelection) # Disable default selection highlighting
         layout.addWidget(self.segments_list, 1) # Give it a stretch factor of 1
 
         seg_ctrl_layout = QHBoxLayout()
