@@ -15,7 +15,7 @@ class TimesplitUI(QMainWindow):
         self.timer = Timer()
         self.ui_timer = QTimer()
         self.ui_timer.timeout.connect(self.update_ui)
-        self.ui_timer.start(10) # 100fps update
+        self.ui_timer.start(33) # ~30fps update
         
         self.init_ui()
         self.set_transparency()
@@ -49,9 +49,17 @@ class TimesplitUI(QMainWindow):
         layout.addWidget(self.timer_label)
 
         # Footer
+        footer_layout = QVBoxLayout()
         self.sob_label = QLabel(f"Sum of Best: {self.format_time(self.run_state.get_sum_of_best())}")
         self.sob_label.setStyleSheet("color: #AAAAAA; font-size: 10px;")
-        layout.addWidget(self.sob_label)
+        footer_layout.addWidget(self.sob_label)
+        
+        hint_label = QLabel("Right-click for Settings")
+        hint_label.setStyleSheet("color: #555555; font-size: 8px;")
+        hint_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        footer_layout.addWidget(hint_label)
+        
+        layout.addLayout(footer_layout)
 
         self.setFixedSize(300, 450)
 
@@ -119,8 +127,27 @@ class TimesplitUI(QMainWindow):
         current_time = self.timer.get_time()
         self.timer_label.setText(self.format_time(current_time))
         
-        # In a real implementation, we'd only refresh list if segment changes
-        # But for MVP this is simple.
+        # Pace coloring
+        if self.timer.state == TimerState.RUNNING:
+            current_seg_index = self.run_state.current_segment_index
+            if 0 <= current_seg_index < len(self.run_state.run_data.segments):
+                segment = self.run_state.run_data.segments[current_seg_index]
+                if segment.personal_best is not None:
+                    if current_time > segment.personal_best:
+                        self.timer_label.setStyleSheet("color: #FF4444; font-size: 36px; font-family: 'Courier New'; font-weight: bold;") # Behind
+                    else:
+                        self.timer_label.setStyleSheet("color: #44FF44; font-size: 36px; font-family: 'Courier New'; font-weight: bold;") # Ahead
+                else:
+                    self.timer_label.setStyleSheet("color: #FFFFFF; font-size: 36px; font-family: 'Courier New'; font-weight: bold;")
+        elif self.timer.state == TimerState.FINISHED:
+            last_seg = self.run_state.run_data.segments[-1]
+            if last_seg.personal_best is not None and last_seg.current_split_time is not None:
+                if last_seg.current_split_time < last_seg.personal_best:
+                    self.timer_label.setStyleSheet("color: #00FFFF; font-size: 36px; font-family: 'Courier New'; font-weight: bold;") # Gold/PB Final
+                else:
+                    self.timer_label.setStyleSheet("color: #FF4444; font-size: 36px; font-family: 'Courier New'; font-weight: bold;")
+        else:
+            self.timer_label.setStyleSheet("color: #00FF00; font-size: 36px; font-family: 'Courier New'; font-weight: bold;")
 
     def format_time(self, seconds):
         if seconds is None: return "-"
@@ -182,7 +209,17 @@ class TimesplitUI(QMainWindow):
 
     def contextMenuEvent(self, event):
         context_menu = QMenu(self)
+        
+        settings_action = QAction("Settings", self)
+        settings_action.triggered.connect(self.open_settings)
+        context_menu.addAction(settings_action)
+        
         exit_action = QAction("Exit", self)
         exit_action.triggered.connect(QApplication.quit)
         context_menu.addAction(exit_action)
         context_menu.exec(event.globalPos())
+
+    def open_settings(self):
+        from .settings_window import SettingsWindow
+        dialog = SettingsWindow(self)
+        dialog.exec()
