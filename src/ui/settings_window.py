@@ -48,11 +48,14 @@ class SegmentEditorWidget(QWidget):
         # Connect name edit to update segment object and emit signal on Enter
         self.name_edit.textChanged.connect(self._update_segment_name)
         self.name_edit.returnPressed.connect(self.enterPressed.emit)
+        print("SegmentEditorWidget: Initialized and connected signals.")
 
     def _update_segment_name(self, name):
         self.segment.name = name
+        print(f"SegmentEditorWidget: Segment name updated to: {name}")
 
     def browse_icon(self):
+        print("SegmentEditorWidget: browse_icon called!")
         file_path, _ = QFileDialog.getOpenFileName(self, "Select Icon", "", "Image Files (*.png *.jpg *.bmp *.gif)")
         if file_path:
             self.segment.icon_path = file_path
